@@ -15,6 +15,11 @@ name = "secretspec"
 path = "src/bin/secretspec.rs"
 required-features = ["cli"]
 
+[[test]]
+name = "integration"
+path = "../tests/lib.rs"
+required-features = ["aws"]
+
 [dependencies]
 aws-config = { workspace = true, optional = true }
 aws-sdk-secretsmanager = { workspace = true, optional = true }
@@ -45,6 +50,7 @@ whoami = { workspace = true, optional = true }
 [dev-dependencies]
 testcontainers = { workspace = true }
 testcontainers-modules = { workspace = true }
+tokio = { version = "1", features = ["macros", "rt"] }
 
 [features]
 aws = ["dep:aws-config", "dep:aws-sdk-secretsmanager", "dep:tokio"]

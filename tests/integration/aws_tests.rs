@@ -1,7 +1,7 @@
-use secretspec::provider::Provider;
-use secretspec::SecretString;
+use secrecy::{ExposeSecret, SecretString};
+use secretspec::Provider;
 use std::convert::TryFrom;
-use testcontainers::RunnableImage;
+use testcontainers::{ImageExt, core::IntoContainerPort, runners::AsyncRunner};
 use testcontainers_modules::localstack::LocalStack;
 
 fn get_test_providers() -> Vec<String> {
@@ -24,9 +24,8 @@ fn generate_test_project_name() -> String {
 }
 
 #[cfg(feature = "aws")]
-#[test]
-fn test_aws_provider_with_localstack() {
-    // Skip test if AWS is not in SECRETSPEC_TEST_PROVIDERS
+#[tokio::test]
+async fn test_aws_provider_with_localstack() {
     let providers = get_test_providers();
     if !providers.contains(&"aws".to_string()) {
         println!(
@@ -35,20 +34,22 @@ fn test_aws_provider_with_localstack() {
         return;
     }
 
-    // Start LocalStack container
-    let docker = testcontainers::clients::Cli::default();
-    let localstack = docker
-        .run(RunnableImage::from(LocalStack::default()).with_env_var("SERVICES", "secretsmanager"));
+    let localstack = LocalStack::default()
+        .with_env_var("SERVICES", "secretsmanager")
+        .start()
+        .await
+        .expect("Should start LocalStack container");
 
-    let host_port = localstack.get_host_port(4566);
+    let host_port = localstack
+        .get_host_port_ipv4(4566.tcp())
+        .await
+        .expect("Should get LocalStack port");
     let endpoint = format!("http://localhost:{}", host_port);
 
-    // Create provider with LocalStack endpoint
     let provider_uri = format!("aws://us-east-1?endpoint={}", endpoint);
     let provider = Box::<dyn Provider>::try_from(provider_uri.as_str())
         .expect("Should create AWS provider with LocalStack endpoint");
 
-    // Test basic workflow
     let project_name = generate_test_project_name();
 
     // Test 1: Get non-existent secret
@@ -85,9 +86,8 @@ fn test_aws_provider_with_localstack() {
 }
 
 #[cfg(feature = "aws")]
-#[test]
-fn test_aws_provider_without_region_with_localstack() {
-    // Skip test if AWS is not in SECRETSPEC_TEST_PROVIDERS
+#[tokio::test]
+async fn test_aws_provider_without_region_with_localstack() {
     let providers = get_test_providers();
     if !providers.contains(&"aws".to_string()) {
         println!(
@@ -96,20 +96,22 @@ fn test_aws_provider_without_region_with_localstack() {
         return;
     }
 
-    // Start LocalStack container
-    let docker = testcontainers::clients::Cli::default();
-    let localstack = docker
-        .run(RunnableImage::from(LocalStack::default()).with_env_var("SERVICES", "secretsmanager"));
+    let localstack = LocalStack::default()
+        .with_env_var("SERVICES", "secretsmanager")
+        .start()
+        .await
+        .expect("Should start LocalStack container");
 
-    let host_port = localstack.get_host_port(4566);
+    let host_port = localstack
+        .get_host_port_ipv4(4566.tcp())
+        .await
+        .expect("Should get LocalStack port");
     let endpoint = format!("http://localhost:{}", host_port);
 
-    // Create provider without region (should use default from AWS SDK)
     let provider_uri = format!("aws://?endpoint={}", endpoint);
     let provider = Box::<dyn Provider>::try_from(provider_uri.as_str())
         .expect("Should create AWS provider without region");
 
-    // Test basic workflow
     let project_name = generate_test_project_name();
     let test_value = SecretString::new("test_value_no_region".into());
 
@@ -126,9 +128,8 @@ fn test_aws_provider_without_region_with_localstack() {
 }
 
 #[cfg(feature = "aws")]
-#[test]
-fn test_aws_provider_with_prefix_and_localstack() {
-    // Skip test if AWS is not in SECRETSPEC_TEST_PROVIDERS
+#[tokio::test]
+async fn test_aws_provider_with_prefix_and_localstack() {
     let providers = get_test_providers();
     if !providers.contains(&"aws".to_string()) {
         println!(
@@ -137,15 +138,18 @@ fn test_aws_provider_with_prefix_and_localstack() {
         return;
     }
 
-    // Start LocalStack container
-    let docker = testcontainers::clients::Cli::default();
-    let localstack = docker
-        .run(RunnableImage::from(LocalStack::default()).with_env_var("SERVICES", "secretsmanager"));
+    let localstack = LocalStack::default()
+        .with_env_var("SERVICES", "secretsmanager")
+        .start()
+        .await
+        .expect("Should start LocalStack container");
 
-    let host_port = localstack.get_host_port(4566);
+    let host_port = localstack
+        .get_host_port_ipv4(4566.tcp())
+        .await
+        .expect("Should get LocalStack port");
     let endpoint = format!("http://localhost:{}", host_port);
 
-    // Create provider with prefix
     let provider_uri = format!("aws://us-east-1/myapp?endpoint={}", endpoint);
     let provider = Box::<dyn Provider>::try_from(provider_uri.as_str())
         .expect("Should create AWS provider with prefix");
@@ -153,12 +157,10 @@ fn test_aws_provider_with_prefix_and_localstack() {
     let project_name = generate_test_project_name();
     let test_value = SecretString::new("test_value_with_prefix".into());
 
-    // Set a secret
     provider
         .set(&project_name, "TEST_KEY", &test_value, "default")
         .expect("Should set secret with prefix");
 
-    // Retrieve it
     let retrieved = provider
         .get(&project_name, "TEST_KEY", "default")
         .expect("Should get secret with prefix")
@@ -168,9 +170,8 @@ fn test_aws_provider_with_prefix_and_localstack() {
 }
 
 #[cfg(feature = "aws")]
-#[test]
-fn test_aws_provider_profile_isolation_with_localstack() {
-    // Skip test if AWS is not in SECRETSPEC_TEST_PROVIDERS
+#[tokio::test]
+async fn test_aws_provider_profile_isolation_with_localstack() {
     let providers = get_test_providers();
     if !providers.contains(&"aws".to_string()) {
         println!(
@@ -179,15 +180,18 @@ fn test_aws_provider_profile_isolation_with_localstack() {
         return;
     }
 
-    // Start LocalStack container
-    let docker = testcontainers::clients::Cli::default();
-    let localstack = docker
-        .run(RunnableImage::from(LocalStack::default()).with_env_var("SERVICES", "secretsmanager"));
+    let localstack = LocalStack::default()
+        .with_env_var("SERVICES", "secretsmanager")
+        .start()
+        .await
+        .expect("Should start LocalStack container");
 
-    let host_port = localstack.get_host_port(4566);
+    let host_port = localstack
+        .get_host_port_ipv4(4566.tcp())
+        .await
+        .expect("Should get LocalStack port");
     let endpoint = format!("http://localhost:{}", host_port);
 
-    // Create provider
     let provider_uri = format!("aws://us-east-1?endpoint={}", endpoint);
     let provider =
         Box::<dyn Provider>::try_from(provider_uri.as_str()).expect("Should create AWS provider");
@@ -196,7 +200,6 @@ fn test_aws_provider_profile_isolation_with_localstack() {
     let dev_value = SecretString::new("dev_secret".into());
     let prod_value = SecretString::new("prod_secret".into());
 
-    // Set different values for different profiles
     provider
         .set(&project_name, "API_KEY", &dev_value, "development")
         .expect("Should set dev secret");
@@ -204,7 +207,6 @@ fn test_aws_provider_profile_isolation_with_localstack() {
         .set(&project_name, "API_KEY", &prod_value, "production")
         .expect("Should set prod secret");
 
-    // Verify they're isolated
     let dev_retrieved = provider
         .get(&project_name, "API_KEY", "development")
         .expect("Should get dev secret")
@@ -219,9 +221,8 @@ fn test_aws_provider_profile_isolation_with_localstack() {
 }
 
 #[cfg(feature = "aws")]
-#[test]
-fn test_aws_provider_special_characters_with_localstack() {
-    // Skip test if AWS is not in SECRETSPEC_TEST_PROVIDERS
+#[tokio::test]
+async fn test_aws_provider_special_characters_with_localstack() {
     let providers = get_test_providers();
     if !providers.contains(&"aws".to_string()) {
         println!(
@@ -230,15 +231,18 @@ fn test_aws_provider_special_characters_with_localstack() {
         return;
     }
 
-    // Start LocalStack container
-    let docker = testcontainers::clients::Cli::default();
-    let localstack = docker
-        .run(RunnableImage::from(LocalStack::default()).with_env_var("SERVICES", "secretsmanager"));
+    let localstack = LocalStack::default()
+        .with_env_var("SERVICES", "secretsmanager")
+        .start()
+        .await
+        .expect("Should start LocalStack container");
 
-    let host_port = localstack.get_host_port(4566);
+    let host_port = localstack
+        .get_host_port_ipv4(4566.tcp())
+        .await
+        .expect("Should get LocalStack port");
     let endpoint = format!("http://localhost:{}", host_port);
 
-    // Create provider
     let provider_uri = format!("aws://us-east-1?endpoint={}", endpoint);
     let provider =
         Box::<dyn Provider>::try_from(provider_uri.as_str()).expect("Should create AWS provider");

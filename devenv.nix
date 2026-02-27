@@ -28,11 +28,16 @@
     cargo test --all
   '';
 
+  scripts.test-aws-integration.exec = ''
+    SECRETSPEC_TEST_PROVIDERS=aws \
+      cargo test --package secretspec --features aws --test integration
+  '';
+
   scripts.test-cli-integration.exec = ''
     # Build the CLI for integration tests
     cargo build --release
     export PATH="$PWD/target/release:$PATH"
-    
+
     # Run CLI integration tests
     bash tests/cli-integration.sh
   '';
