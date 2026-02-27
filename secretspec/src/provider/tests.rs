@@ -340,12 +340,6 @@ mod integration_tests {
         // Test actual providers if environment variable is set
         let providers = get_test_providers();
         for provider_name in providers {
-            // Skip AWS provider in general test - it requires LocalStack
-            // AWS provider is tested separately in dedicated integration tests
-            if provider_name == "aws" {
-                println!("Skipping AWS provider in general test (requires LocalStack)");
-                continue;
-            }
             println!("Testing provider: {}", provider_name);
             let (provider, _temp_dir) = create_provider_with_temp_path(&provider_name);
             test_provider_basic_workflow(provider.as_ref(), &provider_name);
