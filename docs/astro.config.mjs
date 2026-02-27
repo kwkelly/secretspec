@@ -80,6 +80,10 @@ Secrets can be stored in: keyring (default), dotenv files, environment variables
               label: "Google Cloud Secret Manager",
               slug: "providers/gcsm",
             },
+            {
+              label: "AWS Secrets Manager",
+              slug: "providers/aws",
+            },
           ],
         },
         {

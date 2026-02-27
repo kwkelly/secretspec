@@ -90,6 +90,21 @@ gcsm://my-gcp-project         # GCP project ID
 **Prerequisites**: `gcloud` CLI, authenticated, Secret Manager API enabled, build with `--features gcsm`
 **Storage**: Secret name `secretspec-{project}-{profile}-{key}`
 
+## AWS Secrets Manager Provider
+
+**URI**: `aws://[region][/prefix]` or `aws-secretsmanager://[region][/prefix]` - Stores secrets in AWS Secrets Manager
+
+```bash
+aws://                         # Use default region from credential chain
+aws://us-east-1               # Specify region
+aws://us-west-2/myapp         # With prefix for namespacing
+aws-secretsmanager://eu-west-1  # Alternative scheme
+```
+
+**Features**: Read/write, cloud sync, profiles, IAM integration, optional region/prefix
+**Prerequisites**: AWS credentials configured, build with `--features aws`
+**Storage**: Secret name `secretspec/{project}/{profile}/{key}` or `{prefix}/{project}/{profile}/{key}`
+
 ## Provider Selection
 
 ### Command Line
@@ -123,3 +138,4 @@ export SECRETSPEC_PROVIDER="dotenv:///config/.env"
 | LastPass | ✅ End-to-end | Cloud (LastPass) | ✅ Yes |
 | OnePassword | ✅ End-to-end | Cloud (OnePassword) | ✅ Yes |
 | GCSM | ✅ Google-managed | Cloud (GCP) | ✅ Yes |
+| AWS | ✅ AWS KMS | Cloud (AWS) | ✅ Yes |

@@ -340,6 +340,12 @@ mod integration_tests {
         // Test actual providers if environment variable is set
         let providers = get_test_providers();
         for provider_name in providers {
+            // Skip AWS provider in general test - it requires LocalStack
+            // AWS provider is tested separately in dedicated integration tests
+            if provider_name == "aws" {
+                println!("Skipping AWS provider in general test (requires LocalStack)");
+                continue;
+            }
             println!("Testing provider: {}", provider_name);
             let (provider, _temp_dir) = create_provider_with_temp_path(&provider_name);
             test_provider_basic_workflow(provider.as_ref(), &provider_name);
@@ -544,5 +550,71 @@ mod integration_tests {
 
         let provider = Box::<dyn Provider>::try_from("gcsm://project123").unwrap();
         assert_eq!(provider.name(), "gcsm");
+    }
+
+    #[cfg(feature = "aws")]
+    #[test]
+    fn test_aws_provider_creation() {
+        // Test AWS provider can be created from URI format
+        let provider = Box::<dyn Provider>::try_from("aws://us-east-1").unwrap();
+        assert_eq!(provider.name(), "aws");
+        assert_eq!(provider.uri(), "aws://us-east-1");
+
+        // Test with prefix
+        let provider = Box::<dyn Provider>::try_from("aws://eu-west-2/myapp").unwrap();
+        assert_eq!(provider.name(), "aws");
+        assert_eq!(provider.uri(), "aws://eu-west-2/myapp");
+
+        // Test alternative scheme
+        let provider =
+            Box::<dyn Provider>::try_from("aws-secretsmanager://ap-southeast-1").unwrap();
+        assert_eq!(provider.name(), "aws");
+        assert_eq!(provider.uri(), "aws://ap-southeast-1");
+    }
+
+    #[cfg(feature = "aws")]
+    #[test]
+    fn test_aws_provider_accepts_optional_region() {
+        // Test that AWS provider accepts empty region (uses default from credential chain)
+        let provider = Box::<dyn Provider>::try_from("aws://").unwrap();
+        assert_eq!(provider.name(), "aws");
+        assert_eq!(provider.uri(), "aws://");
+
+        let provider = Box::<dyn Provider>::try_from("aws").unwrap();
+        assert_eq!(provider.name(), "aws");
+        assert_eq!(provider.uri(), "aws://");
+    }
+
+    #[cfg(feature = "aws")]
+    #[test]
+    fn test_aws_provider_validates_region_format() {
+        // Empty region is now valid (uses default from credential chain)
+        let provider = Box::<dyn Provider>::try_from("aws://").unwrap();
+        assert_eq!(provider.name(), "aws");
+
+        // Invalid characters
+        let result = Box::<dyn Provider>::try_from("aws://us$east$1");
+        assert!(
+            result.is_err(),
+            "Should reject region with invalid characters"
+        );
+
+        // Missing hyphen (invalid format)
+        let result = Box::<dyn Provider>::try_from("aws://useast1");
+        assert!(result.is_err(), "Should reject region without hyphen");
+
+        // Valid regions
+        let provider = Box::<dyn Provider>::try_from("aws://us-east-1").unwrap();
+        assert_eq!(provider.name(), "aws");
+
+        let provider = Box::<dyn Provider>::try_from("aws://eu-west-2").unwrap();
+        assert_eq!(provider.name(), "aws");
+
+        let provider = Box::<dyn Provider>::try_from("aws://ap-southeast-1").unwrap();
+        assert_eq!(provider.name(), "aws");
+
+        // LocalStack localhost region (for testing)
+        let provider = Box::<dyn Provider>::try_from("aws://localhost").unwrap();
+        assert_eq!(provider.name(), "aws");
     }
 }

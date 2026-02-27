@@ -1,47 +1,64 @@
 [workspace]
-members = ["secretspec", "secretspec-derive", "examples/derive"]
+members = ["examples/derive", "secretspec", "secretspec-derive"]
 resolver = "2"
 
 [workspace.package]
-version = "0.7.2"
 edition = "2024"
+version = "0.7.2"
 
 [workspace.dependencies]
 clap = { version = "4.0", features = ["derive", "env"] }
-keyring = { version = "3.6.2", features = [
-  "sync-secret-service",
-  "windows-native",
-  "apple-native",
-] }
-serde = { version = "1.0", features = ["derive"] }
-toml = "0.9"
-thiserror = "2.0"
-etcetera = "0.11"
 colored = "3.0"
 dotenvy = "0.15"
-serde-envfile = "0.3"
-inquire = { version = "0.9.4", features = ["experimental-multiline-input"] }
-miette = { version = "7.6", features = ["fancy"] }
-serde_json = "1.0"
-tempfile = "3.0"
+etcetera = "0.11"
 http = "1.0"
+inquire = { version = "0.9.4", features = ["experimental-multiline-input"] }
+insta = "1.34"
+keyring = { version = "3.6.2", features = [
+    "apple-native",
+    "sync-secret-service",
+    "windows-native",
+] }
+linkme = "0.3"
+miette = { version = "7.6", features = ["fancy"] }
+once_cell = "1.21"
+proc-macro2 = "1.0"
+quote = "1.0"
+secrecy = { version = "0.10.3", features = ["serde"] }
+serde = { version = "1.0", features = ["derive"] }
+serde-envfile = "0.3"
+serde_json = "1.0"
+syn = "2.0"
+tempfile = "3.0"
+thiserror = "2.0"
+toml = "0.9"
+trybuild = "1.0"
 url = "2.5.4"
 whoami = "2.0"
-syn = "2.0"
-quote = "1.0"
-proc-macro2 = "1.0"
-trybuild = "1.0"
-insta = "1.34"
-linkme = "0.3"
-secrecy = { version = "0.10.3", features = ["serde"] }
-once_cell = "1.21"
-google-cloud-secretmanager-v1 = "1.2"
+
+# AWS SDK dependencies
+aws-config = "1.5"
+aws-sdk-secretsmanager = "1.51"
+
+# Async runtime
 tokio = { version = "1", features = ["rt"] }
-secretspec-derive = { version = "0.7.2", path = "./secretspec-derive" }
+
+# Cloud providers
+google-cloud-secretmanager-v1 = "1.2"
+
+# Project crates
 secretspec = { version = "0.7.2", path = "./secretspec" }
+secretspec-derive = { version = "0.7.2", path = "./secretspec-derive" }
+
+# Utilities
+data-encoding = "2"
 rand = "0.9"
 uuid = { version = "1", features = ["v4"] }
-data-encoding = "2"
+
+# Testing dependencies
+testcontainers = "0.23"
+testcontainers-modules = { version = "0.11", features = ["localstack"] }
+
 
 # The profile that 'dist' will build with
 [profile.dist]

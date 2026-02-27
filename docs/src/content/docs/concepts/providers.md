@@ -16,6 +16,7 @@ Providers are pluggable storage backends that handle the storage and retrieval o
 | **onepassword** | Integration with OnePassword password manager | ✓ | ✓ | ✓ |
 | **lastpass** | Integration with LastPass password manager | ✓ | ✓ | ✓ |
 | **gcsm** | Google Cloud Secret Manager (requires `--features gcsm`) | ✓ | ✓ | ✓ |
+| **aws** | AWS Secrets Manager (requires `--features aws`) | ✓ | ✓ | ✓ |
 
 ## Provider Selection
 

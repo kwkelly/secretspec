@@ -14,7 +14,7 @@ SecretSpec separates the declaration of what secrets an application needs from w
 ## Features
 
 - **[Declarative Configuration](https://secretspec.dev/reference/configuration/)**: Define your secrets in `secretspec.toml` with descriptions and requirements
-- **[Multiple Provider Backends](https://secretspec.dev/concepts/providers/)**: [Keyring](https://secretspec.dev/providers/keyring), [.env](https://secretspec.dev/providers/dotenv), [OnePassword](https://secretspec.dev/providers/onepassword), [LastPass](https://secretspec.dev/providers/lastpass), and [environment variables](https://secretspec.dev/providers/env)
+- **[Multiple Provider Backends](https://secretspec.dev/concepts/providers/)**: [Keyring](https://secretspec.dev/providers/keyring), [.env](https://secretspec.dev/providers/dotenv), [OnePassword](https://secretspec.dev/providers/onepassword), [LastPass](https://secretspec.dev/providers/lastpass), [AWS Secrets Manager](https://secretspec.dev/providers/aws), and [environment variables](https://secretspec.dev/providers/env)
 - **[Type-Safe Rust SDK](https://secretspec.dev/sdk/rust/)**: Generate strongly-typed structs from your `secretspec.toml` for compile-time safety
 - **[Profile Support](https://secretspec.dev/concepts/profiles/)**: Override secret requirements and defaults per profile (development, production, etc.)
 - **Secret Generation**: Auto-generate passwords, tokens, UUIDs, and more when secrets are missing — declarative "generate if absent"
@@ -37,6 +37,7 @@ Next steps:
 $ secretspec config init
 ? Select your preferred provider backend:
 > onepassword: OnePassword password manager
+  aws: AWS Secrets Manager
   dotenv: Traditional .env files
   env: Read-only environment variables
   gcsm: Google Cloud Secret Manager
