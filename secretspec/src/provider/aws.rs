@@ -402,7 +402,7 @@ impl Provider for AwsSecretsManagerProvider {
         match (&self.config.region, &self.config.prefix) {
             (Some(region), Some(prefix)) => format!("aws://{}/{}", region, prefix),
             (Some(region), None) => format!("aws://{}", region),
-            (None, Some(prefix)) => format!("aws:///_{}", prefix),
+            (None, Some(prefix)) => format!("aws:///{}", prefix),
             (None, None) => "aws://".to_string(),
         }
     }
@@ -585,5 +585,43 @@ mod tests {
         };
         let provider_no_region = AwsSecretsManagerProvider::new(config_no_region);
         assert_eq!(provider_no_region.uri(), "aws://");
+
+        // Test prefix without region (triple slash format)
+        let config_prefix_no_region = AwsSecretsManagerConfig {
+            region: None,
+            prefix: Some("myapp".to_string()),
+            endpoint_url: None,
+        };
+        let provider_prefix_no_region = AwsSecretsManagerProvider::new(config_prefix_no_region);
+        assert_eq!(provider_prefix_no_region.uri(), "aws:///myapp");
+    }
+
+    #[test]
+    fn test_aws_config_with_prefix_no_region() {
+        // Test parsing triple slash URI
+        let url = Url::parse("aws:///myapp").unwrap();
+        let config = AwsSecretsManagerConfig::try_from(&url).unwrap();
+        assert_eq!(config.region, None);
+        assert_eq!(config.prefix, Some("myapp".to_string()));
+    }
+
+    #[test]
+    fn test_round_trip_uri_with_prefix_no_region() {
+        // Test that URI generation and parsing are symmetric for prefix without region
+        let original_uri = "aws:///myapp";
+        let config = AwsSecretsManagerConfig::try_from(&Url::parse(original_uri).unwrap()).unwrap();
+
+        // Create provider and get URI
+        let provider = AwsSecretsManagerProvider::new(config.clone());
+        let regenerated_uri = provider.uri();
+
+        // Parse the regenerated URI
+        let reparsed_config =
+            AwsSecretsManagerConfig::try_from(&Url::parse(&regenerated_uri).unwrap()).unwrap();
+
+        // Verify round-trip
+        assert_eq!(config.region, reparsed_config.region);
+        assert_eq!(config.prefix, reparsed_config.prefix);
+        assert_eq!(regenerated_uri, original_uri);
     }
 }

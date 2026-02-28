@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- AWS Secrets Manager provider for AWS secret storage integration (#XX)
+  - Supports optional region (auto-detected from credential chain)
+  - Supports optional prefix for secret namespacing
+  - Works with IAM roles, environment variables, and AWS credentials file
+  - LocalStack support for local development and testing
+  - Build with `--features aws`
+
 ## [0.7.2] - 2026-02-24
 
 ### Added

@@ -67,7 +67,7 @@ aws-secretsmanager://[region][/prefix]
 ### Parameters
 
 - **region** (optional): AWS region (e.g., `us-east-1`, `eu-west-2`). If not specified, uses the default region from AWS credential chain.
-- **prefix** (optional): Prefix for secret names to enable namespacing.
+- **prefix** (optional): Prefix for secret names to enable namespacing. Can be specified with or without a region.
 
 ### Examples
 
@@ -78,8 +78,11 @@ aws://
 # Specify a region
 aws://us-east-1
 
-# Use with prefix for namespacing
+# Use with prefix for namespacing (with region)
 aws://us-west-2/myapp
+
+# Use with prefix for namespacing (without region - uses credential chain)
+aws:///myapp
 
 # Alternative scheme name
 aws-secretsmanager://eu-west-1
@@ -108,9 +111,13 @@ secretspec run --provider aws://us-east-1 -- npm start
 Use a prefix to namespace your secrets:
 
 ```bash
-# Set secrets with prefix
+# Set secrets with prefix (with explicit region)
 secretspec set API_KEY --provider aws://us-east-1/myapp
 secretspec set DATABASE_URL --provider aws://us-east-1/myapp
+
+# Set secrets with prefix (using default region from credential chain)
+secretspec set API_KEY --provider aws:///myapp
+secretspec set DATABASE_URL --provider aws:///myapp
 
 # Secrets will be stored as:
 # myapp/{project}/{profile}/API_KEY
@@ -349,8 +356,9 @@ aws configure
 # Option 1: Environment variable
 export AWS_REGION=us-east-1
 
-# Option 2: In URI
+# Option 2: In URI (with or without prefix)
 secretspec set DATABASE_URL --provider aws://us-east-1
+secretspec set DATABASE_URL --provider aws://us-east-1/myapp
 
 # Option 3: AWS config file
 aws configure set region us-east-1

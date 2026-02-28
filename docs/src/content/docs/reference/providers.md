@@ -97,7 +97,8 @@ gcsm://my-gcp-project         # GCP project ID
 ```bash
 aws://                         # Use default region from credential chain
 aws://us-east-1               # Specify region
-aws://us-west-2/myapp         # With prefix for namespacing
+aws://us-west-2/myapp         # With prefix for namespacing (with region)
+aws:///myapp                  # With prefix for namespacing (without region)
 aws-secretsmanager://eu-west-1  # Alternative scheme
 ```
 
